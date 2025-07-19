@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jeu de Mémoire - Loisirs en Français</title>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', cursive, sans-serif;
+            background-color: #fefbd8;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 20px;
+        }
+        button {
+            background-color: #f7c59f;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            margin: 10px;
+            border-radius: 10px;
+        }
+        .game-board {
+            display: none;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .card {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            background-color: #fff;
+            border: 2px solid #f7c59f;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: transform 0.5s;
+        }
+        .card.trouve {
+            background-color: #c8facc;
+            cursor: default;
+        }
+        #definition-card {
+            display: none;
+            background-color: #ffe0ac;
+            padding: 20px;
+            margin-top: 20px;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="accueil">
+        <h1>Bienvenue ! Apprenons les loisirs et les activités du weekend en français</h1>
+        <button onclick="afficherInstructions()">Commencer</button>
+    </div>
+
+    <div class="container" id="instructions" style="display: none;">
+        <h2>Instructions du jeu</h2>
+        <p>
+            Ce jeu est un jeu de mémoire. Tu dois retourner les cartes pour trouver les paires d'activités en français avec des emojis.<br>
+            Chaque paire correcte vaut <strong>1 point</strong>. Si tu fais une erreur, tu verras une carte de définition pour apprendre.<br>
+            Le but est d'apprendre en s'amusant !
+        </p>
+        <button onclick="demarrerJeu()">Allons jouer !</button>
+    </div>
+
+    <div class="container" id="jeu" style="display: none;">
+        <h2>Jeu de Mémoire : Les Loisirs 🎉</h2>
+        <div class="game-board" id="plateau"></div>
+        <div id="definition-card"></div>
+        <p id="score">Score : 0</p>
+    </div>
+
+    <script>
+        const cartes = [
+            { emoji: "⚽", texte: "jouer au foot" },
+            { emoji: "⚽", texte: "jouer au foot" },
+            { emoji: "📚", texte: "lire un livre" },
+            { emoji: "📚", texte: "lire un livre" },
+            { emoji: "🚴‍♂️", texte: "faire du vélo" },
+            { emoji: "🚴‍♂️", texte: "faire du vélo" },
+            { emoji: "📺", texte: "regarder la télé" },
+            { emoji: "📺", texte: "regarder la télé" },
+            { emoji: "🎧", texte: "écouter de la musique" },
+            { emoji: "🎧", texte: "écouter de la musique" },
+            { emoji: "🏞️", texte: "aller au parc" },
+            { emoji: "🏞️", texte: "aller au parc" },
+            { emoji: "🏊‍♂️", texte: "nager" },
+            { emoji: "🏊‍♂️", texte: "nager" },
+            { emoji: "🎸", texte: "jouer de la guitare" },
+            { emoji: "🎸", texte: "jouer de la guitare" }
+        ];
+
+        let premiereCarte = null;
+        let deuxiemeCarte = null;
+        let bloque = false;
+        let score = 0;
+
+        const definitions = {
+            "jouer au foot": "Jouer au foot : Sport d'équipe avec un ballon, très populaire.",
+            "lire un livre": "Lire un livre : Activité calme et imaginative avec des histoires.",
+            "faire du vélo": "Faire du vélo : Se déplacer ou se promener avec un vélo.",
+            "regarder la télé": "Regarder la télé : Regarder des dessins animés, films ou séries.",
+            "écouter de la musique": "Écouter de la musique : Se détendre avec ses chansons préférées.",
+            "aller au parc": "Aller au parc : Sortie dans un espace vert pour jouer ou se reposer.",
+            "nager": "Nager : Activité aquatique qui consiste à se déplacer dans l'eau.",
+            "jouer de la guitare": "Jouer de la guitare : Créer de la musique avec un instrument à cordes."
+        };
+
+        function afficherInstructions() {
+            document.getElementById('accueil').style.display = 'none';
+            document.getElementById('instructions').style.display = 'block';
+        }
+
+        function demarrerJeu() {
+            document.getElementById('instructions').style.display = 'none';
+            document.getElementById('jeu').style.display = 'block';
+            initialiserCartes();
+        }
+
+        function initialiserCartes() {
+            const plateau = document.getElementById('plateau');
+            plateau.innerHTML = '';
+            const melange = [...cartes].sort(() => 0.5 - Math.random());
+            melange.forEach(item => {
+                const div = document.createElement('div');
+                div.className = 'card';
+                div.dataset.texte = item.texte;
+                div.dataset.emoji = item.emoji;
+                div.innerHTML = '?';
+                div.onclick = () => retournerCarte(div);
+                plateau.appendChild(div);
+            });
+        }
+
+        function retournerCarte(carte) {
+            if (bloque || carte.classList.contains('trouve') || carte.innerHTML !== '?') return;
+
+            carte.innerHTML = carte.dataset.emoji;
+
+            if (!premiereCarte) {
+                premiereCarte = carte;
+            } else {
+                deuxiemeCarte = carte;
+                bloque = true;
+
+                if (premiereCarte.dataset.texte === deuxiemeCarte.dataset.texte) {
+                    premiereCarte.classList.add('trouve');
+                    deuxiemeCarte.classList.add('trouve');
+                    score++;
+                    document.getElementById('score').textContent = 'Score : ' + score;
+                    reinitialiserTour();
+                } else {
+                    setTimeout(() => {
+                        premiereCarte.innerHTML = '?';
+                        deuxiemeCarte.innerHTML = '?';
+                        afficherDefinition(premiereCarte.dataset.texte);
+                        reinitialiserTour();
+                    }, 1000);
+                }
+            }
+        }
+
+        function afficherDefinition(texte) {
+            const def = definitions[texte] || "Pas de définition trouvée.";
+            const defCard = document.getElementById('definition-card');
+            defCard.style.display = 'block';
+            defCard.innerHTML = '<strong>Définition :</strong><br>' + def;
+        }
+
+        function reinitialiserTour() {
+            premiereCarte = null;
+            deuxiemeCarte = null;
+            bloque = false;
+        }
+    </script>
+</body>
+</html>
